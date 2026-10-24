@@ -1,0 +1,53 @@
+name: CI/CD
+
+# Quando o pipeline roda
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---------- CI: integração contínua ----------
+  test:
+    name: CI - Testes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar testes
+        run: pytest -v
+
+  # ---------- CD: entrega contínua ----------
+  deploy:
+    name: CD - Deploy
+    needs: test                     # só roda se os testes passarem
+    if: github.event_name == 'push' # só no push para a main (não em PR)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Empacotar a aplicação
+        run: |
+          mkdir -p dist
+          cp main.py dist/
+          echo "Build gerado em $(date)" > dist/build-info.txt
+
+      - name: Publicar artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: dist/
+
+      - name: Deploy (simulado)
+        run: echo "🚀 Deploy da versão ${{ github.sha }} realizado com sucesso!"

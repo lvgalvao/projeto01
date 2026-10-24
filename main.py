@@ -1,2 +1,2 @@
-print("meu primeiro código python")
-print("meu primeiro código python")
+def soma (a,b):
+    return a + b
